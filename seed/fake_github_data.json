@@ -1,0 +1,12 @@
+[
+  {
+    "type": "PushEvent",
+    "additions": 120,
+    "deletions": 50
+  },
+  {
+    "type": "PushEvent",
+    "additions": 200,
+    "deletions": 100
+  }
+]
