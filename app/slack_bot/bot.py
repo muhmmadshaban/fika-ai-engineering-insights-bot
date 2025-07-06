@@ -5,44 +5,46 @@ import os
 from dotenv import load_dotenv
 
 from langgraph_flow import app as langgraph_app  # LangGraph flow
-from db import init_db, save_report_to_db
-from utils.chart_generator import generate_contribution_chart
-from utils.slack_utils import upload_chart_to_slack
+from app.db import init_db, save_report_to_db
+from app.utils.chart_generator import generate_contribution_chart
+from app.utils.slack_utils import upload_chart_to_slack
 
-# Load environment variables early
+# Load env and init DB
 load_dotenv()
 init_db()
 
-# Initialize Slack app
-slack_app = SlackApp(
-    token=os.getenv("SLACK_BOT_TOKEN"),
-    signing_secret=os.getenv("SLACK_SIGNING_SECRET")
-)
+# Environment validation
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET")
 
-# Slash command handler
+if not SLACK_BOT_TOKEN or not SLACK_SIGNING_SECRET:
+    raise ValueError("❌ SLACK_BOT_TOKEN or SLACK_SIGNING_SECRET not set in .env")
+
+# Initialize Slack App
+slack_app = SlackApp(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)
+
+# Slash Command Handler
 @slack_app.command("/dev-report")
 def handle_dev_report(ack, say, command):
-    print("✅ Slash command received:", command)
     ack()
+    say("📊 Generating your weekly dev report...")
 
     try:
-        # Step 1: Run LangGraph app (collect + analyze GitHub data)
+        # 1. Run LangGraph pipeline
         result = langgraph_app.invoke({})
 
-        # Step 2: Send summary to Slack
+        # 2. Send summary
         summary = result.get("summary", "No summary available.")
         say(summary)
 
-        # Step 3: Store weekly report in DB
+        # 3. Save to DB
         save_report_to_db(result)
         print("✅ Report saved to DB.")
-        print("📡 Channel ID:", command.get("channel_id"))
 
-        # Step 4: Generate and upload chart (if data available)
-        per_author = result.get("per_author_diff", {})
-        if per_author and isinstance(per_author, dict) and any(per_author.values()):
+        # 4. Upload chart if per-author stats exist
+        per_author = result.get("per_author_diff", {})  # FIX: consistent key
+        if isinstance(per_author, dict) and any(per_author.values()):
             chart_path = generate_contribution_chart(per_author)
-
             if chart_path:
                 upload_chart_to_slack(command["channel_id"], chart_path)
             else:
@@ -51,10 +53,10 @@ def handle_dev_report(ack, say, command):
             say("_No contribution data available to plot._")
 
     except Exception as e:
-        print("❌ Error:", str(e))
+        print("❌ Error:", e)
         say("❌ An internal error occurred while processing the report.")
 
-# Create FastAPI app and Slack event route
+# FastAPI app + Slack Events adapter
 fastapi_app = FastAPI()
 handler = SlackRequestHandler(slack_app)
 

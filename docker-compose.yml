@@ -1,1 +1,28 @@
 # docker-compose.yml content
+version: "3.8"
+
+services:
+  app:
+    build: .
+    command: uvicorn app.slack_bot.bot:fastapi_app --host 0.0.0.0 --port 3000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=sqlite:///./test.db
+
+  db:
+    image: nouchka/sqlite3
+    volumes:
+      - ./data:/root/db
+
+  seed:
+    build: .
+    command: python scripts/seed_db.py
+    depends_on:
+      - app
+    volumes:
+      - .:/app

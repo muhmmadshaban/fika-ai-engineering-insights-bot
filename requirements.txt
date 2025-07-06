@@ -1,1 +1,10 @@
-# requirements.txt content
+fastapi
+uvicorn
+requests
+python-dotenv
+openai
+slack_sdk
+aiohttp
+matplotlib
+together
+langgraph

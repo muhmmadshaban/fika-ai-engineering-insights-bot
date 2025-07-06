@@ -7,16 +7,18 @@ class DevState(TypedDict, total=False):  # total=False makes keys optional
     summary: str
     total_additions: int
     total_deletions: int
-    per_author_diff: dict  # ← ✅ Add this line to preserve author stats
-    pr_metrics: dict       # ← (optional) Add if you use it
-    review_latency: dict   # ← (optional)
-    cycle_time: dict       # ← (optional)
-    ci_failures: int       # ← (optional)
+    per_author_diff: dict  
+    pr_metrics: dict
+    review_latency: dict
+    cycle_time: dict
+    ci_failures: int
+    churn_outliers: List[dict]  # ✅ New field for churn analysis
+
 
 # Step 2: Import your agents
-from agents.data_harvester import data_harvester_agent
-from agents.diff_analyst import diff_analyst_agent
-from agents.insight_narrator import insight_narrator_agent
+from app.agents.data_harvester import data_harvester_agent
+from app.agents.diff_analyst import diff_analyst_agent
+from app.agents.insight_narrator import insight_narrator_agent
 
 # Step 3: Build the graph with schema
 graph = StateGraph(DevState)

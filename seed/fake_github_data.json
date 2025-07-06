@@ -1,12 +1,18 @@
 [
   {
-    "type": "PushEvent",
-    "additions": 120,
-    "deletions": 50
+    "author": "alice",
+    "additions": 45,
+    "deletions": 12,
+    "files_changed": 3,
+    "pr_number": 101,
+    "sha": "abc123"
   },
   {
-    "type": "PushEvent",
-    "additions": 200,
-    "deletions": 100
+    "author": "bob",
+    "additions": 88,
+    "deletions": 15,
+    "files_changed": 5,
+    "pr_number": 102,
+    "sha": "def456"
   }
 ]
